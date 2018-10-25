@@ -102,6 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+<<<<<<< HEAD
 ./build.
 ./dist/
 ./gene_graph_lib.egg_info
+=======
+>>>>>>> 32815e54485e9c716d2cfd983d5e94450758b008
