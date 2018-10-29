@@ -1,4 +1,3 @@
-
 from gene_graph_lib.compute_complexity import GenomeGraph
 import time
 from pickle import load

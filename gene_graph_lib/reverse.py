@@ -1,27 +1,24 @@
-import app.gene_graph.source.compute_complexity as compute_complexity
 import numpy as np
 
+def reverse(graph, length_table):
 
-def reverse(edge_table, length_table):
-
-	graph = compute_complexity.generate_graph(edge_table)
 	refs = [stamm for stamm in graph]
 	refs.sort()
-
+	reversed_chains = refs = {stamm:set([]) for stamm in graph}
+	
 	all_contigs = []
 
 	for stamm in graph:
 		for contig in graph[stamm]:
-			all_contigs.append(contig + [stamm, graph[stamm].index(contig)])
+			all_contigs.append(graph[stamm][contig] + [stamm, contig])
 
 	all_contigs.sort(key=len, reverse=True)
 
-	print('Reversing...\n')	
-	was_reversed = 0
-
+	print('Reversing...\n')
 	aligned = []
 
 	while True:
+
 		for contig in all_contigs:
 			if contig in aligned:
 				continue
@@ -29,14 +26,14 @@ def reverse(edge_table, length_table):
 			aligned.append(contig)
 			break
 
-		print('reference is ' + contig[-2] + ' contig_' + str(contig[-1]))
+		print('reference is ' + contig[-2] + ' contig ' + str(contig[-1]))
 
 		FORWARD = 0
 		REVERSE = 0
 
 		was_done = 0
 
-		ref_pair_chain = set([contig[i] + contig[i + 1] for i in range(int(len(contig)-3))])
+		ref_pair_chain = set([(contig[i], contig[i + 1]) for i in range(int(len(contig)-3))])
 
 		for contig2 in all_contigs:
 			if contig2 in aligned or contig2[-2] == reference:
@@ -45,21 +42,23 @@ def reverse(edge_table, length_table):
 			if len(set(contig2[:-2]).intersection(set(contig[:-2]))) < 0.5 * len(set(contig2[:-2])):
 				continue
 
-			pair_chain = set([contig2[i] + contig2[i + 1] for i in range(int(len(contig2)-3))])						
-			reversed_pair_chain = set([contig2[i + 1] + contig2[i] for i in range(int(len(contig2)-3))])
+			pair_chain = set([(contig2[i], contig2[i + 1]) for i in range(int(len(contig2)-3))])
+			reversed_pair_chain = set([(contig2[i + 1], contig2[i]) for i in range(int(len(contig2)-3))])
 
+				
 			intersect = ref_pair_chain.intersection(pair_chain)
-			forw_count = np.sum([length_table[contig[-2]][OG[:int(len(OG)/2)]] for OG in intersect])
-
-
+			
+			
+			forw_count = np.sum([length_table[contig[-2]][OG[0]] for OG in intersect])
 			rev_intersect = ref_pair_chain.intersection(reversed_pair_chain)
-			rev_count = np.sum([length_table[contig2[-2]][OG[:int(len(OG)/2)]] for OG in rev_intersect])
-
+			rev_count = np.sum([length_table[contig2[-2]][OG[0]] for OG in rev_intersect])
 
 			if rev_count > forw_count:
 				was_done += 1
 				REVERSE += 1
 				graph[contig2[-2]][contig2[-1]].reverse()
+				reversed_chains[contig2[-2]].add(contig2[-1])
+
 
 			elif forw_count >= rev_count:
 				was_done += 1
@@ -80,5 +79,5 @@ def reverse(edge_table, length_table):
 	print()
 	print('Reversing completed!')
 
-	return graph
 
+	return graph, reversed_chains

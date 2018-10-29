@@ -5,11 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="gene_graph_lib",
-<<<<<<< HEAD
-    version="0.1.4",
-=======
-    version="0.0.1",
->>>>>>> 32815e54485e9c716d2cfd983d5e94450758b008
+    version="0.1.5",
     author="DNKonanov",
     author_email="konanovdmitriy@gmail.com",
     description="mini-library for GeneGraph tool and GCB project",
@@ -22,8 +18,4 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-<<<<<<< HEAD
 )
-=======
-)
->>>>>>> 32815e54485e9c716d2cfd983d5e94450758b008

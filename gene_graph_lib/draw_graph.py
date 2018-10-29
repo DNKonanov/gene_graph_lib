@@ -38,8 +38,39 @@ def get_json_graph(input_subgraph, freq_min, da=False):
     json_graph = to_json_representation([genes, bonds], ref_chain=ref_chain,
                                         aim_chain=aim_chain, freq_min=freq_min, draw_all=da)
 
-    get_graphviz_layout([genes, bonds], ref_chain=ref_chain,
+    
+    positions, edge_points = get_graphviz_layout([genes, bonds], ref_chain=ref_chain,
                                         aim_chain=aim_chain, freq_min=freq_min, draw_all=da)
+
+                     
+    for node in json_graph['nodes']:
+        try:
+            node['data']['position'] = {'x': float(positions[node['data']['id']].split(',')[0]), 'y': float(positions[node['data']['id']].split(',')[1])}
+            node['data']['posx'] = float(positions[node['data']['id']].split(',')[0])
+            node['data']['posy'] = float(positions[node['data']['id']].split(',')[1])
+
+        except:
+            node['data']['position'] = {'x': 0, 'y': 0}
+            node['data']['posx'] = 0
+            node['data']['posy'] = 0
+            continue
+
+
+    for edge in json_graph['edges']:
+        string = edge_points[(edge['data']['source'], edge['data']['target'])][2:]
+        points = string.split(' ')
+
+        arr = []
+
+        for point in points:
+            arr.append({
+                'x': float(point.split(',')[0]),
+                'y': float(point.split(',')[1])
+            })
+
+
+        edge['data']['control_points'] = arr
+
     return json_graph
 
 # Returns JSON representation of subgraph ready for frontend consumption
@@ -115,8 +146,10 @@ def get_graphviz_layout(input_subgraph, ref_chain=[], aim_chain=[], freq_min=1, 
             ps.add_edge(str(i[0]), str(i[1]), color='grey', penwidth=str(math.sqrt(i[2])), constraint='false')
 
     ps.layout(prog='dot')
-    for n in ps.nodes():
-        print(n, n.attr['pos'])
+
+    positions = {n: n.attr['pos'] for n in ps.nodes()}
+    edge_points = {edge: edge.attr['pos'] for edge in ps.edges()}
+    return positions, edge_points
 
     
 
