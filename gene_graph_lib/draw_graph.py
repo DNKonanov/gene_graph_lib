@@ -169,8 +169,9 @@ def to_json_representation(input_subgraph, ref_chain=[], aim_chain=[], freq_min=
         print(len(input_subgraph[1]))
 
     nodes_list = []
-    nodes_list.append({'data':
-                            {'id': 'main_ref', 'color': '#d3d3d3'}})
+    if len(aim_chain) > 0:
+        nodes_list.append({'data':
+                                {'id': 'main_ref', 'color': '#d3d3d3'}})
 
     for i in range(len(ref_chain)):
         shape = 'circle'
