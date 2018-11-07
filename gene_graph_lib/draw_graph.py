@@ -3,36 +3,15 @@ import time
 from pygraphviz import AGraph
 
 def get_json_graph(input_subgraph, freq_min, da=False):
-    f_in = input_subgraph
-    genes = set([])
-    bonds = []
 
-    aim_chain = set([])
-    ref_chain = []
+    print (input_subgraph)
 
-    last = ''
 
-    for i in f_in:
-        i = i +'\n'
-        line = i.split(' ')
-        genes.add(line[0])
-        genes.add(line[1])
 
-        if line[3] == '1':
-            aim_chain.add(line[0])
-            aim_chain.add(line[1])
-
-        if line[4][:-1] == '1':
-            if line[0] not in ref_chain:
-                ref_chain.append(line[0])
-                last = line[1]
-
-        bonds.append([line[0], line[1], 1])
-
-    ref_chain.append(last)
-
-    bonds = compute_frequence(bonds)
-    genes = list(genes)
+    genes = list(input_subgraph[0])
+    bonds = compute_frequence(input_subgraph[1])
+    aim_chain = input_subgraph[2]
+    ref_chain = input_subgraph[3]
 
     print('Rendering...')
     json_graph = to_json_representation([genes, bonds], ref_chain=ref_chain,
@@ -171,7 +150,7 @@ def to_json_representation(input_subgraph, ref_chain=[], aim_chain=[], freq_min=
     nodes_list = []
     if len(aim_chain) > 0:
         nodes_list.append({'data':
-                                {'id': 'main_ref', 'color': '#d3d3d3'}})
+                                {'id': '', 'color': '#d3d3d3'}})
 
     for i in range(len(ref_chain)):
         shape = 'circle'
