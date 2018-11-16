@@ -4,10 +4,6 @@ from pygraphviz import AGraph
 
 def get_json_graph(input_subgraph, freq_min, da=False):
 
-    print (input_subgraph)
-
-
-
     genes = list(input_subgraph[0])
     bonds = compute_frequence(input_subgraph[1])
     aim_chain = input_subgraph[2]
@@ -25,30 +21,10 @@ def get_json_graph(input_subgraph, freq_min, da=False):
     for node in json_graph['nodes']:
         try:
             node['data']['position'] = {'x': float(positions[node['data']['id']].split(',')[0]), 'y': float(positions[node['data']['id']].split(',')[1])}
-            node['data']['posx'] = float(positions[node['data']['id']].split(',')[0])
-            node['data']['posy'] = float(positions[node['data']['id']].split(',')[1])
-
         except:
             node['data']['position'] = {'x': 0, 'y': 0}
-            node['data']['posx'] = 0
-            node['data']['posy'] = 0
             continue
 
-
-    for edge in json_graph['edges']:
-        string = edge_points[(edge['data']['source'], edge['data']['target'])][2:]
-        points = string.split(' ')
-
-        arr = []
-
-        for point in points:
-            arr.append({
-                'x': float(point.split(',')[0]),
-                'y': float(point.split(',')[1])
-            })
-
-
-        edge['data']['control_points'] = arr
 
     return json_graph
 
@@ -150,13 +126,13 @@ def to_json_representation(input_subgraph, ref_chain=[], aim_chain=[], freq_min=
     nodes_list = []
     if len(aim_chain) > 0:
         nodes_list.append({'data':
-                                {'id': '', 'color': '#d3d3d3'}})
+                                {'id': 'm', 'color': '#d3d3d3'}})
 
     for i in range(len(ref_chain)):
         shape = 'circle'
         if ref_chain[i] in aim_chain:
             nodes_list.append({'data':
-                {'id': ref_chain[i], 'shape': shape, 'color': '#ff0000', 'parent':'main_ref'}})
+                {'id': ref_chain[i], 'shape': shape, 'color': '#ff0000', 'parent':'m'}})
         else:
             nodes_list.append({'data':
                 {'id': ref_chain[i], 'shape': shape, 'color': 'pink'}})

@@ -557,11 +557,11 @@ class GenomeGraph:
 		f_mc = open(outdir + '/prob_main_chain_contig_' + str(contig) + '.txt', 'a+')
 
 		for gene in data[3]:
-			f_wc.write(self.genes_decode[gene] + '\t' + str(data[0][gene]) + '\n')
+			f_wc.write(self.genes_decode[gene] + '\t' + str(data[3][gene]) + '\n')
 			f_mc.write(self.genes_decode[gene] + '\n')
 
 		for gene in data[4]:
-			f_io.write(self.genes_decode[gene] + '\t' + str(data[1][gene]) + '\n')
+			f_io.write(self.genes_decode[gene] + '\t' + str(data[4][gene]) + '\n')
 
 		for bridge in data[5]:
 			f_ab.write(self.genes_decode[bridge[0]] + '\t' + self.genes_decode[bridge[1]] + '\t' + str(data[5][bridge]) + '\t')
