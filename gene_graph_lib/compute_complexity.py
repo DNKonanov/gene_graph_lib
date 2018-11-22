@@ -523,10 +523,8 @@ class GenomeGraph:
 
 		contig_key = contig_key = [row for row in c.execute('SELECT id FROM contigs_table WHERE  contig = "' + contig + '"')][0][0]
 
-
-		sql_exec = 'CREATE TABLE IF NOT EXISTS og_complexity_table_' + str(window) + ' (contig integer,og text,win_var float,prob_win_var float,io float,prob_io float	);'
 		for gene in data[0]:
-			sql_exec = 'INSERT INTO og_complexity_table_' + str(window) + ' VALUES (' + str(contig_key) + ',"' + self.genes_decode[gene] + '",' + str(data[0][gene]) + ',' + str(data[3][gene]) + ',' + str(data[1][gene]) + ',' + str(data[4][gene]) + ')'
+			sql_exec = 'INSERT INTO og_complexity_table VALUES (' + str(contig_key) + ',"' + self.genes_decode[gene] + '",' + str(data[0][gene]) + ',' + str(data[3][gene]) + ',' + str(data[1][gene]) + ',' + str(data[4][gene]) + ')'
 			c.execute(sql_exec)
 
 		connect.commit()
@@ -607,6 +605,8 @@ class GenomeGraph:
 					end_index = base_line.index(p[-1])
 
 					if abs(start_index - end_index) <= window:
+						if abs(start_index - end_index) == 1 and len(p) == 2:
+							continue
 						for i in range(min(start_index, end_index), max(start_index, end_index) + 1):
 							variability_table[base_line[i]] += 1/float(norm)
 				
