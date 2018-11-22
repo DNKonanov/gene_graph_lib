@@ -629,8 +629,9 @@ class GenomeGraph:
 					end_index = base_line.index(p[-1])
 
 					if abs(start_index - end_index) <= window:
-						for i in range(min(start_index, end_index), max(start_index, end_index) + 1):
-							prob_variability_table[base_line[i]] += 1/float(norm)
+						if (abs(start_index - end_index) == 1 and len(p) == 2) == False:
+							for i in range(min(start_index, end_index), max(start_index, end_index) + 1):
+								prob_variability_table[base_line[i]] += 1/float(norm)
 
 				print('\r', end='')
 				count += 1
