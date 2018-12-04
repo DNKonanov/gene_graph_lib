@@ -3,6 +3,10 @@ import time
 from collections import OrderedDict
 import sqlite3
 import math
+from peewee import (FloatField, ForeignKeyField, IntegerField, ManyToManyField,
+                    Model, PrimaryKeyField, SqliteDatabase, TextField)
+from gene_graph_lib.create_db import Genome, Contig, NodeOG, Complexity, Edge
+
 
 class GenomeGraph:
 	def __init__(self, name='GenomeGraph', file=None):
@@ -515,22 +519,21 @@ class GenomeGraph:
 	def save_to_db(self, data, out_db, contig, stamm, window=20):
 
 
+		db = SqliteDatabase(out_db)
 
-		connect = sqlite3.connect(out_db)
+		for _class in [Genome, Contig, NodeOG, Complexity, Edge]:
+			_class._meta.database = db
 
-		c = connect.cursor()
-
-
-		contig_key = contig_key = [row for row in c.execute('SELECT id FROM contigs_table WHERE  contig = "' + contig + '"')][0][0]
-
+		db.create_tables([Genome, Contig, NodeOG, Complexity, Edge])
+		contig_id = Contig.select().where(Contig.contig_code == contig)
+		nodes = {n.node_name: n.node_id for n in NodeOG.select().where(NodeOG.contig == contig_id)}
+		complexity_query = []
 		for gene in data[0]:
-			sql_exec = 'INSERT INTO og_complexity_table VALUES (' + str(contig_key) + ',"' + self.genes_decode[gene] + '",' + str(data[0][gene]) + ',' + str(data[3][gene]) + ',' + str(data[1][gene]) + ',' + str(data[4][gene]) + ')'
-			c.execute(sql_exec)
 
-		connect.commit()
-		connect.close()
-		
+			complexity_query.append({'node_id': nodes[self.genes_decode[gene]], 'window_complexity': data[0][gene], 'prob_window_complexity': data[3][gene],
+										'io_complexity': data[1][gene], 'prob_io_complexity': data[4][gene], 'window': window})
 
+		Complexity.insert_many(complexity_query).execute()
 
 	def save_data(self, data, outdir, contig):
 		f_io = open(outdir + '/IO_vaiability_table_contig_' + str(contig) + '.txt', 'a+')
