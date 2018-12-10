@@ -18,6 +18,7 @@ class Contig(Model):
     class Meta:
         table_name = 'contigs_table'
 
+
 class NodeOG(Model):
     node_id = PrimaryKeyField()
     node_name = TextField()
@@ -29,10 +30,13 @@ class NodeOG(Model):
     class Meta:
         table_name = 'nodes_table'
 
-
+class NodeKey(Model):
+    node_id = PrimaryKeyField()
+    node_name = TextField()
 
 class Complexity(Model):
     node = ForeignKeyField(NodeOG, backref='complexity')
+    contig = ForeignKeyField(Contig, backref='complexity')
     window_complexity = FloatField()
     prob_window_complexity = FloatField()
     io_complexity = FloatField()
@@ -43,11 +47,13 @@ class Complexity(Model):
         table_name = 'complexity_table'
 
 class Edge(Model):
-    source = ForeignKeyField(NodeOG, backref='edges_sources')
-    target = ForeignKeyField(NodeOG, backref='edges_targets')
+    source = ForeignKeyField(NodeKey, backref='edges_sources')
+    target = ForeignKeyField(NodeKey, backref='edges_targets')
     frequency = IntegerField()
-    genomes = ManyToManyField(Genome)
+    genomes = TextField()
 
     class Meta:
         table_name = 'edges_table'
+
+
 

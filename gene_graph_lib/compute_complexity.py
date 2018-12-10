@@ -530,7 +530,7 @@ class GenomeGraph:
 		complexity_query = []
 		for gene in data[0]:
 
-			complexity_query.append({'node_id': nodes[self.genes_decode[gene]], 'window_complexity': data[0][gene], 'prob_window_complexity': data[3][gene],
+			complexity_query.append({'node': nodes[self.genes_decode[gene]], 'contig': contig_id, 'window_complexity': data[0][gene], 'prob_window_complexity': data[3][gene],
 										'io_complexity': data[1][gene], 'prob_io_complexity': data[4][gene], 'window': window})
 
 		Complexity.insert_many(complexity_query).execute()
