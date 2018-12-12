@@ -517,28 +517,25 @@ class GenomeGraph:
 
 
 	def save_to_db(self, data, out_db, contig, stamm, window=20):
+		
+		db_ = sqlite3.connect(out_db)
 
+		c = db_.cursor()
 
-		db = SqliteDatabase(out_db)
+		contig_id = [q[0] for q in c.execute('select contig_id from contigs_table where contig_code="' + contig + '"')][0]
+		nodes = {n[1]: n[0] for n in c.execute('select node_id, node_name from nodes_table where contig_id=' + str(contig_id) + '')}
 
-		for _class in [Genome, Contig, NodeOG, Complexity, Edge]:
-			_class._meta.database = db
-
-		db.create_tables([Genome, Contig, NodeOG, Complexity, Edge])
-		contig_id = Contig.select().where(Contig.contig_code == contig)
-		nodes = {n.node_name: n.node_id for n in NodeOG.select().where(NodeOG.contig == contig_id)}
-		complexity_query = []
 		for gene in data[0]:
-
-			complexity_query.append({'node': nodes[self.genes_decode[gene]], 'contig': contig_id, 'window_complexity': data[0][gene], 'prob_window_complexity': data[3][gene],
-										'io_complexity': data[1][gene], 'prob_io_complexity': data[4][gene], 'window': window})
-
-		Complexity.insert_many(complexity_query).execute()
+			
+			c.execute('insert into complexity_table values(' + str(nodes[self.genes_decode[gene]]) + ', ' + str(contig_id) + ', ' + str(data[0][gene]) + ', ' + 
+						str(data[3][gene]) + ', ' + str(data[1][gene]) + ',' + str(data[4][gene]) + ', ' + str(window) + ')')
+		db_.commit()
+		db_.close()
 
 	def save_data(self, data, outdir, contig):
-		f_io = open(outdir + '/IO_vaiability_table_contig_' + str(contig) + '.txt', 'a+')
+		f_io = open(outdir + '/IO_complexity_table_contig_' + str(contig) + '.txt', 'a+')
 		f_ab = open(outdir + '/all_bridges_contig_' + str(contig) + '.txt', 'a+')
-		f_wc = open(outdir + '/window_variability_contig_' + str(contig) + '.txt', 'a+')
+		f_wc = open(outdir + '/window_complexity_contig_' + str(contig) + '.txt', 'a+')
 		f_mc = open(outdir + '/main_chain_contig_' + str(contig) + '.txt', 'a+')
 
 		for gene in data[0]:
@@ -552,9 +549,9 @@ class GenomeGraph:
 			f_ab.write(self.genes_decode[bridge[0]] + '\t' + self.genes_decode[bridge[1]] + '\t' + str(data[2][bridge]) + '\t')
 
 		
-		f_io = open(outdir + '/prob_IO_vaiability_table_contig_' + str(contig) + '.txt', 'a+')
+		f_io = open(outdir + '/prob_IO_complexity_table_contig_' + str(contig) + '.txt', 'a+')
 		f_ab = open(outdir + '/prob_all_bridges_contig_' + str(contig) + '.txt', 'a+')
-		f_wc = open(outdir + '/prob_window_variability_contig_' + str(contig) + '.txt', 'a+')
+		f_wc = open(outdir + '/prob_window_complexity_contig_' + str(contig) + '.txt', 'a+')
 		f_mc = open(outdir + '/prob_main_chain_contig_' + str(contig) + '.txt', 'a+')
 
 		for gene in data[3]:
@@ -568,7 +565,7 @@ class GenomeGraph:
 			f_ab.write(self.genes_decode[bridge[0]] + '\t' + self.genes_decode[bridge[1]] + '\t' + str(data[5][bridge]) + '\t')
 
 
-	def compute_variability(self, outdir, reference, window=20, iterations=500, min_depth=0, max_depth=-1, save_db=None):
+	def compute_complexity(self, outdir, reference, window=20, iterations=500, min_depth=0, max_depth=-1, save_db=None):
 		
 		print('Reference is ' + reference)
 		print('Number of contigs: ' + str(len(self.list_graph[reference])))
@@ -579,8 +576,8 @@ class GenomeGraph:
 
 			base_line = self.list_graph[reference][contig]
 			
-			variability_table = OrderedDict((gene, 0) for gene in base_line)
-			prob_variability_table = OrderedDict((gene, 0) for gene in base_line)
+			complexity_table = OrderedDict((gene, 0) for gene in base_line)
+			prob_complexity_table = OrderedDict((gene, 0) for gene in base_line)
 			io_table = OrderedDict((gene, 0) for gene in base_line)
 			prob_io_table = OrderedDict((gene, 0) for gene in base_line)
 			all_bridges = OrderedDict([])
@@ -610,7 +607,7 @@ class GenomeGraph:
 					if abs(start_index - end_index) <= window:
 						if (abs(start_index - end_index) == 1 and len(p) == 2) == False:
 							for i in range(min(start_index, end_index), max(start_index, end_index) + 1):
-								variability_table[base_line[i]] += 1/float(norm)
+								complexity_table[base_line[i]] += 1/float(norm)
 				
 				
 				
@@ -634,17 +631,17 @@ class GenomeGraph:
 					if abs(start_index - end_index) <= window:
 						if (abs(start_index - end_index) == 1 and len(p) == 2) == False:
 							for i in range(min(start_index, end_index), max(start_index, end_index) + 1):
-								prob_variability_table[base_line[i]] += 1/float(norm)
+								prob_complexity_table[base_line[i]] += 1/float(norm)
 
 				print('\r', end='')
 				count += 1
 
-			self.save_data([variability_table, io_table, all_bridges, 
-						prob_variability_table, prob_io_table, prob_all_bridges], outdir, contig)
+			self.save_data([complexity_table, io_table, all_bridges, 
+						prob_complexity_table, prob_io_table, prob_all_bridges], outdir, contig)
 
 			if save_db != None:
-				self.save_to_db([variability_table, io_table, all_bridges, 
-						prob_variability_table, prob_io_table, prob_all_bridges], save_db, contig, reference, window=window)
+				self.save_to_db([complexity_table, io_table, all_bridges, 
+						prob_complexity_table, prob_io_table, prob_all_bridges], save_db, contig, reference, window=window)
 	
 		print('\nComputing completed')
 		
