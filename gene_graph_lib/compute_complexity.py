@@ -408,6 +408,7 @@ class GenomeGraph:
 				contigs = [[]]
 
 				for contig in self.list_graph[stamm]:
+					contigs.append([])
 					j = self.list_graph[stamm][contig]
 					current_depth = 0
 					for gene in range(len(j)):

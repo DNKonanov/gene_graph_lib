@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="gene_graph_lib",
-    version="0.1.17",
+    version="0.1.18",
     author="DNKonanov",
     author_email="konanovdmitriy@gmail.com",
     description="mini-library for GeneGraph tool and GCB project",
