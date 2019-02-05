@@ -594,12 +594,14 @@ class GenomeGraph:
 
 					if (p[0], p[-1]) not in all_bridges:
 
-						all_bridges[p[0], p[-1]] = 1
+						all_bridges[(p[0], p[-1])] = 1
 					else:
-						all_bridges[p[0], p[-1]] += 1
+						all_bridges[(p[0], p[-1])] += 1
 					
 					io_table[p[0]] += 1
 					io_table[p[-1]] += 1
+
+					start_index, end_index = min(base_line.index(p[0]), base_line.index(p[-1])), max(base_line.index(p[0]), base_line.index(p[-1]))
 					
 					if abs(start_index - end_index) <= window:
 						if len(p) == 2 and end_index-start_index == 1:
@@ -616,12 +618,12 @@ class GenomeGraph:
 
 					if (p[0], p[-1]) not in all_bridges:
 
-						all_bridges[p[0], p[-1]] = 1
+						prob_all_bridges[(p[0], p[-1])] = 1
 					else:
-						all_bridges[p[0], p[-1]] += 1
+						prob_all_bridges[(p[0], p[-1])] += 1
 					
-					io_table[p[0]] += 1
-					io_table[p[-1]] += 1
+					prob_io_table[p[0]] += 1
+					prob_io_table[p[-1]] += 1
 					
 					start_index, end_index = min(base_line.index(p[0]), base_line.index(p[-1])), max(base_line.index(p[0]), base_line.index(p[-1]))
 
@@ -751,6 +753,32 @@ class GenomeGraph:
 		
 		return dict_graph, subgraph
 
+	def find_local_paths(self, subgr, start, main_chain, window=20):
+		paths = []
+
+		start_index = main_chain.index(start)
+		for stamm in subgr:
+			for contig in subgr[stamm]:
+				stamm_chain = contig
+
+				if start in stamm_chain:
+					path = [start]
+
+					index = stamm_chain.index(start)
+					for gene in stamm_chain[index + 1:]:
+						path.append(gene)
+						if gene in main_chain:
+
+							if abs(start_index - main_chain.index(gene)) > window:
+								continue
+							if path in paths:
+								break
+							paths.append(tuple(path))
+							break
+
+		return paths
+
+
 	def find_local_probabilistic_paths(self, subgr, start, main_chain, iterations=500, min_depth=0, max_depth=-1, window=20):
 		paths = []
 
@@ -817,7 +845,32 @@ class GenomeGraph:
 
 
 				for local_gene in list_subgr[reference][0]:
+					
 
+					#by genomes method with subgraph
+					paths = self.find_local_paths(list_subgr, local_gene, list_subgr[reference][0], window=window)
+
+					for p in paths:
+						if p in All_paths:
+							continue
+
+						if (p[0], p[-1]) not in all_bridges:
+
+							all_bridges[(p[0], p[-1])] = 1
+						else:
+							all_bridges[(p[0], p[-1])] += 1
+						
+						io_table[p[0]] += 1
+						io_table[p[-1]] += 1
+						
+						start_index, end_index = min(base_line.index(p[0]), base_line.index(p[-1])), max(base_line.index(p[0]), base_line.index(p[-1]))
+						All_paths.add(p)
+
+						if abs(start_index - end_index) <= window:
+							if len(p) == 2 and end_index-start_index == 1:
+								continue
+							for i in range(start_index, end_index + 1):
+								complexity_table[base_line[i]] += 1/norm
 
 					#probabilistic method with subgraph
 					paths = self.find_local_probabilistic_paths(subgr, local_gene, list_subgr[reference][0], iterations=iterations, min_depth=min_depth, max_depth=max_depth, window=window)
@@ -826,14 +879,14 @@ class GenomeGraph:
 						if p in All_paths:
 							continue
 
-						if (p[0], p[-1]) not in all_bridges:
+						if (p[0], p[-1]) not in prob_all_bridges:
 
-							all_bridges[p[0], p[-1]] = 1
+							prob_all_bridges[(p[0], p[-1])] = 1
 						else:
-							all_bridges[p[0], p[-1]] += 1
+							prob_all_bridges[(p[0], p[-1])] += 1
 						
-						io_table[p[0]] += 1
-						io_table[p[-1]] += 1
+						prob_io_table[p[0]] += 1
+						prob_io_table[p[-1]] += 1
 						
 						start_index, end_index = min(base_line.index(p[0]), base_line.index(p[-1])), max(base_line.index(p[0]), base_line.index(p[-1]))
 						All_paths.add(p)
