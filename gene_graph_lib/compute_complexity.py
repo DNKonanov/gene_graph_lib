@@ -92,6 +92,38 @@ class GenomeGraph:
 		self.genes_decode = {i : all_genes[i] for i in range(len(all_genes))}
 
 
+	def _delete_anomaly(self, length_variation=0.05, anomaly_genomes=0.2):
+
+		for node in self.dict_graph:
+			if len(self.dict_graph[node]) >= len(self.list_graph)*anomaly_genomes:
+				check_anomaly = set([])
+				for anode in self.dict_graph[node]:
+					
+					if len(self.dict_graph[anode]) > 1:
+						break
+					check_anomaly.add(self.dict_graph[anode][0])
+
+
+				if len(check_anomaly) > 1:
+					continue
+
+				self.dict_graph[node] = [self.dict_graph[anode][0]]
+
+				for genome in self.list_graph:
+					for contig in self.list_graph[genome]:
+						c = self.list_graph[genome][contig]
+
+						try:
+							if node not in c:
+								continue
+
+							pre_index = c.index(node)
+							post_index = c.index(self.dict_graph[anode][0])
+							if abs(pre_index - post_index):
+								c.pop(pre_index + 1)
+						except:
+							continue
+
 
 
 	def read_graph(self, file=None, names_list='all', generate_freq=False):
@@ -201,6 +233,8 @@ class GenomeGraph:
 					freq_table[i] = self.dict_graph_freq[gene].count(i)
 
 				self.dict_graph_freq[gene] = [(i, freq_table[i]) for i in freq_table]
+
+		self._delete_anomaly()
 
 
 	def _parse_template(self, template):
