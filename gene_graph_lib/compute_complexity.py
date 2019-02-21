@@ -907,7 +907,7 @@ class GenomeGraph:
 
 				for p in paths:
 
-					if (p[0], p[-1]) not in all_bridges:
+					if (p[0], p[-1]) not in prob_all_bridges:
 
 						prob_all_bridges[(p[0], p[-1])] = 1
 					else:
