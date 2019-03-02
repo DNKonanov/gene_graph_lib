@@ -47,21 +47,37 @@ def garlic_number(
     return result
 
 
-def count_garlic_in_gene(genome_dict, garlic_pattern=GarlicPattern()) -> dict:
+def count_garlic_for_gen(
+        genome_dict,
+        genome,
+        hashed,
+        garlic_pattern) -> list:
+    result = []
+    for contig_name in genome_dict[genome]:
+        current_contig = genome_dict[genome][contig_name]
+        for other_genome in genome_dict.keys() - set(genome):
+            for other_contig in genome_dict[other_genome].values():
+                result.extend(garlic_number(
+                    current_contig,
+                    other_contig,
+                    min_insert_per_pos=garlic_pattern.min_insert_per_pos,
+                    max_insert_per_pos=garlic_pattern.max_insert_per_pos,
+                    hashed=hashed))
+    return result
+
+
+def count_garlic_in_gen_for_each(
+        genome_dict,
+        garlic_pattern=GarlicPattern()) -> dict:
     result = {}
     hashed = set()
     for genome, contigs in genome_dict.items():
-        result[genome] = []
-        for contig_name in contigs:
-            current_contig = contigs[contig_name]
-            for other_genome in genome_dict.keys() - set(genome):
-                for other_contig in genome_dict[other_genome].values():
-                    result[genome].extend(garlic_number(
-                        current_contig,
-                        other_contig,
-                        min_insert_per_pos=garlic_pattern.min_insert_per_pos,
-                        max_insert_per_pos=garlic_pattern.max_insert_per_pos,
-                        hashed=hashed))
+        result[genome] = count_garlic_for_gen(
+            genome_dict,
+            genome,
+            hashed,
+            garlic_pattern=garlic_pattern
+        )
     for k, v in result.items():
         result[k] = {
             pr: wght for pr, wght in dict(collections.Counter(v)).items()
