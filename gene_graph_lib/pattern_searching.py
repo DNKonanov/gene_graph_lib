@@ -13,9 +13,9 @@ class GarlicPattern(object):
             min_insert_per_pos=1,
             max_insert_per_pos=11,
             min_insert_count=1,
-            max_insert_count=10,
+            max_insert_count=10**5,
             left_weight=.25,
-            midl_weight=.25,
+            middle_weight=.25,
             right_weight=.25
     ):
         self.name = 'Garlic'
@@ -24,7 +24,7 @@ class GarlicPattern(object):
         self.min_insert_count = min_insert_count
         self.max_insert_count = max_insert_count
         self.left_weight = left_weight
-        self.midl_weight = midl_weight
+        self.middle_weight = middle_weight
         self.right_weight = right_weight
 
 
@@ -63,9 +63,9 @@ def count_garlic_for_gen(
             max_insert_per_pos) -> list:
         _result = []
         for left_gen, right_gen in zip(left_contig[:-1], left_contig[1:]):
-            if (left_gen, right_gen) in hashed:
-                _result.append((left_gen, right_gen))
-                continue
+            # if (left_gen, right_gen) in hashed:
+            #     _result.append((left_gen, right_gen))
+            #     continue
             if (left_gen not in right_contig) or (
                     right_gen not in right_contig):
                 continue
@@ -78,7 +78,7 @@ def count_garlic_for_gen(
     result = []
     for contig_name in genome_dict[genome]:
         current_contig = genome_dict[genome][contig_name]
-        for other_genome in genome_dict.keys() - set(genome):
+        for other_genome in set(genome_dict.keys()) - set(genome):
             for other_contig in genome_dict[other_genome].values():
                 result.extend(garlic_number(
                     current_contig,
@@ -145,22 +145,33 @@ def count_patten_in_gen_for_each(
 #
 # print(count_garlic_in_gene(test_genome_sample))
 
-test_graph = compute_complexity.GenomeGraph()
-test_graph.read_graph('../Streptococcus_pneumoniae.sif')
-print('readed')
-for k, v in test_graph.list_graph.items():
-    print(k, list(map(len, v.values())))
+def get_garlic(path_to_sif):
+    test_graph = compute_complexity.GenomeGraph()
+    test_graph.read_graph(path_to_sif)
 
-keys_ = [k for k in test_graph.list_graph.keys()][:10]
+    genome = list(test_graph.list_graph.keys())[0]
+    hash = set()
+    garlic = GarlicPattern(
+        min_insert_per_pos=1,
+        max_insert_per_pos=50)
 
-t = time.time()
+    result = count_garlic_for_gen(
+        genome_dict=test_graph.list_graph,
+        genome=genome,
+        hashed=hash,
+        garlic_pattern=garlic
+    )
 
-for k, v in count_patten_in_gen_for_each(
-        {k: test_graph.list_graph[k] for k in keys_},
-        GarlicPattern()).items():
-    print(k, len(v))
+    with open('garlic_results_{}'.format(genome), 'w') as garres:
+        for pair, weight in collections.Counter(result).items():
+            rez_str = '{} {} {}\n'.format(
+                test_graph.genes_decode[pair[0]],
+                test_graph.genes_decode[pair[1]],
+                weight)
+            garres.write(rez_str)
 
-print(time.time() - t)
+
+get_garlic('../Streptococcus_pneumoniae.sif')
 
 
 def find_transposition(g, max_length=20, min_length=1, min_distance=5, max_distance=100000, conservativity=0.5):
