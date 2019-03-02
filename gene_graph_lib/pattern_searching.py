@@ -1,8 +1,10 @@
 import networkx
 import collections
-import compute_complexity
+from gene_graph_lib import compute_complexity
 import time
 
+import matplotlib.pyplot as plt
+from compute_complexity import GenomeGraph
 
 class GarlicPattern(object):
     def __init__(
@@ -78,15 +80,189 @@ def count_garlic_in_gene(genome_dict, garlic_pattern=GarlicPattern()) -> dict:
 #
 # print(count_garlic_in_gene(test_genome_sample))
 
-test_graph = compute_complexity.GenomeGraph()
-test_graph.read_graph('../Streptococcus_pneumoniae.sif')
-print('readed')
+#test_graph = compute_complexity.GenomeGraph()
+#test_graph.read_graph('../Streptococcus_pneumoniae.sif')
+#print('readed')
 # for k, v in test_graph.list_graph.items():
 #     print(k, list(map(len, v.values())))
 
-keys_ = [k for k in test_graph.list_graph.keys()][:15]
+#keys_ = [k for k in test_graph.list_graph.keys()][:15]
 
-t = time.time()
-for k, v in count_garlic_in_gene({k: test_graph.list_graph[k] for k in keys_}).items():
-    print(k, len(v))
-print(time.time() - t)
+#t = time.time()
+#for k, v in count_garlic_in_gene({k: test_graph.list_graph[k] for k in keys_}).items():
+#    print(k, len(v))
+#print(time.time() - t)
+
+
+
+
+
+
+def find_transposition(g, max_length=20, min_length=1, min_distance=5, max_distance=100000, conservativity=0.5):
+    pairs_genomes_sets = {}
+
+    cons_limit = conservativity*len(g.list_graph)
+
+
+    hits = {}
+    
+    print('Create edges genomes set...')
+    for genome in g.list_graph:
+        for contig in g.list_graph[genome]:
+            c = g.list_graph[genome][contig]
+
+            for i in range(len(c) - 1):
+                if (c[i], c[i+1]) not in pairs_genomes_sets:
+                    pairs_genomes_sets[(c[i], c[i+1])] = set([genome])
+                else:
+                    pairs_genomes_sets[(c[i], c[i+1])].add(genome)
+
+
+    for genome in g.list_graph:
+        print(genome)
+        for contig in g.list_graph[genome]:
+            c = g.list_graph[genome][contig]
+
+            for i in range(len(c) - 1):
+                if len(g.dict_graph[c[i]]) > 1:
+                    for gene in g.dict_graph[c[i]]:
+                        if gene == c[i+1]:
+                            continue
+
+                        try:
+                            if (min_distance <= abs(c.index(gene) - i) <= max_distance) == False:
+                                continue
+
+                            tr_index = c.index(gene)
+                            
+                            for j in range(tr_index-max_length, tr_index + max_length + 1):
+                                if (c[j] in g.dict_graph[c[tr_index]]) == False:
+                                    continue
+
+                                if (c[i+1] in g.dict_graph[c[j]]) == False:
+                                    continue
+
+                                if abs(i - j) < min_distance:
+                                    continue
+                                
+                                if(abs(j-tr_index)) < min_length:
+                                    continue
+
+                                intersect_all = pairs_genomes_sets[(c[i], c[i+1])]
+
+                                for k in range(min(j, tr_index), max(tr_index, j)):
+                                    intersect_all = intersect_all.intersection(pairs_genomes_sets[(c[k], c[k+1])])
+                                
+                                
+                                if len(intersect_all) >= cons_limit:
+                                    
+                                    if genome not in hits:
+                                        hits[genome] = set([(
+                                            g.genes_decode[c[i]], 
+                                            g.genes_decode[c[i+1]], 
+                                            g.genes_decode[c[j]], 
+                                            g.genes_decode[c[tr_index]],
+                                            abs(j-tr_index))])
+
+                                    else:
+                                        hits[genome].add((
+                                            g.genes_decode[c[i]], 
+                                            g.genes_decode[c[i+1]], 
+                                            g.genes_decode[c[j]], 
+                                            g.genes_decode[c[tr_index]],
+                                            abs(j-tr_index)))
+
+                        except:
+                            continue
+    return hits
+
+
+
+#test_graph = GenomeGraph()
+#test_graph.read_graph('../../data/Streptococcus_pneumoniae/Streptococcus_pneumoniae.sif')
+#test_graph.read_graph('../../data/Escherichia_coli/Escherichia_coli.sif')
+#test_graph.read_graph('../../data/Streptococcus_pneumoniae/Streptococcus_pneumoniae.sif')
+#test_graph.read_graph('../../data/Neisseria_gonorrhoeae.sif')
+
+
+#E = find_transposition(test_graph, conservativity=0.0)
+
+
+#count = 0
+
+#for genome in E:
+
+ #   for contig in test_graph.list_graph[genome]:
+
+#        X = {gene: 0 for gene in test_graph.list_graph[genome][contig]}
+#        print(X)
+#        for e in E[genome]:
+#            try:
+#                X[test_graph.genes_code[e[0]]] += 1
+#                X[test_graph.genes_code[e[1]]] += 1
+#            except:
+#                continue
+
+    
+
+#    if count > 20:
+#        break
+
+
+#plt.plot([X[i] for i in X])
+#plt.show()
+
+#count += 1
+
+
+#U = []
+#for genome in E:
+#    U += [i[4] for i in E[genome]]
+
+#plt.hist(U)
+#plt.show()
+
+
+
+
+
+def find_spider(g, min_legs_len=50, min_legs_num=4):
+    
+
+    all_spiders = set([])
+    no_spiders = set([])
+
+    for genome in g.list_graph:
+        print(genome)
+        for contig in g.list_graph[genome]:
+            c = g.list_graph[genome][contig]
+
+            for i in range(len(c)):
+
+                if c[i] in all_spiders or c[i] in no_spiders:
+                    continue
+
+                uniq = set([])
+                if len(g.dict_graph) < min_legs_num:
+                    continue
+                for other_genome in g.list_graph:
+                    for other_contig in g.list_graph[other_genome]:
+                        other_c = g.list_graph[other_genome][other_contig]
+
+                        if c[i] not in other_c:
+                            continue
+                        k = other_c.index(c[i])
+
+                        if len(set(other_c[k-min_legs_len:k+min_legs_len+1]).intersection(set(c[i-min_legs_len:i+min_legs_len+1]))) == 1:
+                            uniq.add(tuple(other_c[k-min_legs_len:k]))
+
+                if len(uniq) >= min_legs_num:
+                    all_spiders.add(c[i])
+
+                else:
+                    no_spiders.add(c[i])
+
+    print(len(all_spiders))
+    all_spiders = set([g.genes_decode[i] for i in all_spiders])
+    for a in all_spiders:
+        print(a)
