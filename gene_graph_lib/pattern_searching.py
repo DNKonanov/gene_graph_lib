@@ -6,6 +6,7 @@ import time
 import matplotlib.pyplot as plt
 from compute_complexity import GenomeGraph
 
+
 class GarlicPattern(object):
     def __init__(
             self,
@@ -27,24 +28,14 @@ class GarlicPattern(object):
         self.right_weight = right_weight
 
 
-def garlic_number(
-        left_contig,
-        right_contig,
-        min_insert_per_pos,
-        max_insert_per_pos,
-        hashed) -> list:
-    result = []
-    for left_gen, right_gen in zip(left_contig[:-1], left_contig[1:]):
-        if (left_gen, right_gen) in hashed:
-            result.append((left_gen, right_gen))
-            continue
-        if (left_gen not in right_contig) or (right_gen not in right_contig):
-            continue
-        dif = right_contig.index(right_gen) - right_contig.index(left_gen)
-        if (dif > min_insert_per_pos) and (dif < max_insert_per_pos):
-            result.append((left_gen, right_gen))
-            hashed.add((left_gen, right_gen))
-    return result
+class SpiderPattern(object):
+    def __init__(self):
+        pass
+
+
+class PenguinPatter(object):
+    def __init__(self):
+        pass
 
 
 def count_garlic_for_gen(
@@ -52,6 +43,26 @@ def count_garlic_for_gen(
         genome,
         hashed,
         garlic_pattern) -> list:
+
+    def garlic_number(
+            left_contig,
+            right_contig,
+            min_insert_per_pos,
+            max_insert_per_pos) -> list:
+        result = []
+        for left_gen, right_gen in zip(left_contig[:-1], left_contig[1:]):
+            if (left_gen, right_gen) in hashed:
+                result.append((left_gen, right_gen))
+                continue
+            if (left_gen not in right_contig) or (
+                    right_gen not in right_contig):
+                continue
+            dif = right_contig.index(right_gen) - right_contig.index(left_gen)
+            if (dif > min_insert_per_pos) and (dif < max_insert_per_pos):
+                result.append((left_gen, right_gen))
+                hashed.add((left_gen, right_gen))
+        return result
+
     result = []
     for contig_name in genome_dict[genome]:
         current_contig = genome_dict[genome][contig_name]
@@ -61,16 +72,32 @@ def count_garlic_for_gen(
                     current_contig,
                     other_contig,
                     min_insert_per_pos=garlic_pattern.min_insert_per_pos,
-                    max_insert_per_pos=garlic_pattern.max_insert_per_pos,
-                    hashed=hashed))
+                    max_insert_per_pos=garlic_pattern.max_insert_per_pos))
     return result
 
 
-def count_garlic_in_gen_for_each(
+def count_spider_for_gen(
+        genome_dict,
+        genome,
+        hashed,
+        spider_pattern) -> list:
+    pass
+
+
+def count_penguin_for_gen(
+        genome_dict,
+        genome,
+        hashed,
+        penguin_pattern) -> list:
+    pass
+
+
+def count_patten_in_gen_for_each(
         genome_dict,
         garlic_pattern=GarlicPattern()) -> dict:
     result = {}
     hashed = set()
+    count_pattern_for_gen = pttern_searchers[]
     for genome, contigs in genome_dict.items():
         result[genome] = count_garlic_for_gen(
             genome_dict,
@@ -108,10 +135,6 @@ def count_garlic_in_gen_for_each(
 #for k, v in count_garlic_in_gene({k: test_graph.list_graph[k] for k in keys_}).items():
 #    print(k, len(v))
 #print(time.time() - t)
-
-
-
-
 
 
 def find_transposition(g, max_length=20, min_length=1, min_distance=5, max_distance=100000, conservativity=0.5):
