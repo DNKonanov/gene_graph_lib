@@ -79,6 +79,7 @@ class GenomeGraph:
 	list_graph = {}
 	genes_code = {}
 	genes_decode = {}
+	edges_weights = {}
 
 
 	def _code_genes(self, edge_table):
@@ -234,156 +235,11 @@ class GenomeGraph:
 
 				self.dict_graph_freq[gene] = [(i, freq_table[i]) for i in freq_table]
 
+				for i in freq_table:
+					self.edges_weights[(gene, i)] = freq_table[i]
+
 		self._delete_anomaly()
 
-
-	def _parse_template(self, template):
-
-		parsed_template = {'nodes': [], 'edges': [], 'paths': []}
-
-		skip_sb = [' ', '\n', '\t']
-		
-		for sb in skip_sb:
-			template.replace(sb, '')
-
-		open_node = 'close'
-		i = 0
-		while i < len(template):
-			sb = template[i]
-			if sb == "'":
-				i += 1
-				string = ''
-				while template[i] != "'":
-					string += template[i]
-					i += 1
-				
-				node = self._parse_node(string)
-				parsed_template['nodes'].append(node)
-				if open_node == 'edge':
-					parsed_template['edges'][-1]['end'] = node
-					open_node = 'close'
-				if open_node == 'path':
-					parsed_template['paths'][-1]['end'] = node
-					open_node = 'close'
-				
-				i += 1
-				continue
-
-			if sb == '-':
-				i += 1
-				string = ''
-				while template[i] != '>':
-					string += template[i]
-					i += 1
-
-				try:
-					edge = self._parse_edge(string, parsed_template['nodes'][-1])
-
-				except IndexError:
-					edge = self._parse_edge(string, '')
-
-				parsed_template['edges'].append(edge)
-				open_node = 'edge'
-				i += 1
-				continue
-
-			if sb == '*':
-				i += 1
-				string = ''
-				while template[i] != "/":
-					string += template[i]
-					i += 1
-
-				try:
-					path = self._parse_path(string, parsed_template['nodes'][-1])
-				except IndexError:
-					path = self._parse_path(string, '')
-				parsed_template['paths'].append(path)
-				open_node = 'path'
-
-			if sb == ';':
-				open_node = 'close'
-				i += 1
-				continue
-			i += 1
-
-		parsed_template['nodes'] = set(parsed_template['nodes'])
-
-		return parsed_template
-
-	def _parse_node(self, string):
-		node = string
-		return node
-
-	def _parse_edge(self, string, last_node):
-		start = last_node
-		weigth = set([])
-		end = ''
-
-
-		i = 0
-		if string.startswith('{'):
-			string = string[1:-1]
-			parameters = string.split(':')
-			for par in parameters:
-				if par.startswith('!') == False:
-					if par.startswith('w('):
-						i, j = int(par[2:-1].split(',')[0]), int(par[2:-1].split(',')[1])
-						weigth = weigth.union(set(list(weigth) + [n for  n in range(i, j+1)]))
-			for par in parameters:
-				if par.startswith('!'):
-					if par.startswith('w('):
-						i, j = int(par[3:-1].split(',')[0]), int(par[2:-1].split(',')[1])
-						weigth = weigth.difference(set([n for  n in range(i, j+1)]))
-
-		string = {'start': start, 'end': end, 'w': weigth}
-
-		return string
-
-
-	def _parse_path(self, string, last_node):
-		start = last_node
-		weigth = set([])
-		uniq = set([])
-		n = []
-		nr = False
-		length = set([])
-		weigth
-		end = ''
-
-		i = 0
-		if string.startswith('{'):
-			string = string[1:-1]
-			parameters = string.split(':')
-			for par in parameters:
-				if par.startswith('!') == False:
-					if par.startswith('l('):
-						i, j = int(par[2:-1].split(',')[0]), int(par[2:-1].split(',')[1])
-						length = length.union(set(list(length) + [n for  n in range(i, j+1)]))
-					if par.startswith('w('):
-						i, j = int(par[2:-1].split(',')[0]), int(par[2:-1].split(',')[1])
-						weigth = weigth.union(set(list(weigth) + [n for  n in range(i, j+1)]))
-					if par.startswith('u('):
-						i, j = int(par[2:-1].split(',')[0]), int(par[2:-1].split(',')[1])
-						uniq = uniq.union(set(list(uniq) + [n for  n in range(i, j+1)]))
-
-			
-			
-			for par in parameters:
-				if par.startswith('!'):
-					if par.startswith('!l('):
-						i, j = int(par[3:-1].split(',')[0]), int(par[2:-1].split(',')[1])
-						length = length.difference(set([n for  n in range(i, j+1)]))
-					if par.startswith('!w('):
-						i, j = int(par[3:-1].split(',')[0]), int(par[2:-1].split(',')[1])
-						weigth = weigth.difference(set([n for  n in range(i, j+1)]))
-					if par.startswith('!u('):
-						i, j = int(par[3:-1].split(',')[0]), int(par[2:-1].split(',')[1])
-						uniq = uniq.difference(set([n for  n in range(i, j+1)]))
-
-		string = {'start': start, 'end': end, 'l': length, 'w': weigth, 'u': uniq}
-
-		return string
 
 	def _find_node_env(self, gene, ref):
 		
