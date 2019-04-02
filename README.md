@@ -1,6 +1,6 @@
 # gene_graph_lib
 
-This is a Python module containing methods used in the [GCB](gcb.rcpcm.org) web-application.
+This is a Python module containing methods used in the [GCB](http://gcb.rcpcm.org) web-application.
 Contains classes and methods used to create and process the graph representation of a genomes set. 
 
 ## compute_complexity module
