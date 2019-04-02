@@ -84,9 +84,6 @@ class GenomeGraph:
 
 	def _code_genes(self, edge_table):
 
-		"""
-		Fills genes_code and genes_decode attributes
-		"""
 
 		all_genes = list(set([edge[0] for edge in edge_table]).union(set([edge[1] for edge in edge_table])))
 		self.genes_code = {all_genes[i] : i for i in range(len(all_genes))}
@@ -661,7 +658,7 @@ class GenomeGraph:
 			f_io.write(self.genes_decode[gene] + '\t' + str(data[1][gene]) + '\n')
 
 		for bridge in data[2]:
-			f_ab.write(self.genes_decode[bridge[0]] + '\t' + self.genes_decode[bridge[1]] + '\t' + str(data[2][bridge]) + '\t')
+			f_ab.write(self.genes_decode[bridge[0]] + '\t' + self.genes_decode[bridge[1]] + '\t' + str(data[2][bridge]) + '\n')
 
 		
 		f_io = open(outdir + '/prob_IO_complexity_table_contig_' + str(contig) + '.txt', 'a+')
@@ -677,7 +674,7 @@ class GenomeGraph:
 			f_io.write(self.genes_decode[gene] + '\t' + str(data[4][gene]) + '\n')
 
 		for bridge in data[5]:
-			f_ab.write(self.genes_decode[bridge[0]] + '\t' + self.genes_decode[bridge[1]] + '\t' + str(data[5][bridge]) + '\t')
+			f_ab.write(self.genes_decode[bridge[0]] + '\t' + self.genes_decode[bridge[1]] + '\t' + str(data[5][bridge]) + '\n')
 
 
 	def compute_complexity(self, outdir, reference, window=20, iterations=500, min_depth=0, max_depth=-1, save_db=None):
