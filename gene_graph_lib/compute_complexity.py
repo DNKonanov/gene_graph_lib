@@ -496,7 +496,15 @@ class GenomeGraph:
 					for gene in range(len(j)):
 						if j[gene] in base_chain and contigs[-1] == []:
 							current_depth = 0
-							contigs[-1] = j[max(0, gene - tails):gene + 1]
+
+							left_add = []
+							right_add = []
+
+							for cg in range(gene, gene-tails-1, -1):
+								if j[cg] in self.list_graph[reference][c]:
+									break
+
+							contigs[-1] = j[max(0, cg):gene + 1]
 
 						else:
 							if contigs[-1] == []:
@@ -512,14 +520,24 @@ class GenomeGraph:
 							
 							if current_depth >= depth:
 								contigs[-1] = contigs[-1][:min(-depth + tails, 0)]
+								for cg in range(len(contigs[-1])-tails-1, len(contigs[-1])):
+									if contigs[-1][cg] in self.list_graph[reference][c]:
+										contigs[-1] = contigs[-1][:cg]
+										break
+
 								current_depth = 0
 								contigs.append([])
 							
 							if j[gene] == j[-1]:
 								contigs[-1] = contigs[-1][:min(-current_depth + tails, 0)]
+								for cg in range(len(contigs[-1])-tails-1, len(contigs[-1])):
+									if contigs[-1][cg] in self.list_graph[reference][c]:
+										contigs[-1] = contigs[-1][:cg]
+										break
 								current_depth = 0
 								contigs.append([])
 								continue
+
 				subgraph[stamm] = contigs
 
 		All_nodes = set([])
