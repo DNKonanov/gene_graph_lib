@@ -14,7 +14,6 @@ def reverse(graph, length_table):
 
 	all_contigs.sort(key=len, reverse=True)
 
-	print('Reversing...\n')
 	aligned = []
 
 	while True:
@@ -26,7 +25,6 @@ def reverse(graph, length_table):
 			aligned.append(contig)
 			break
 
-		print('reference is ' + contig[-2] + ' contig ' + str(contig[-1]))
 
 		FORWARD = 0
 		REVERSE = 0
@@ -67,17 +65,6 @@ def reverse(graph, length_table):
 			aligned.append(contig2)
 		if was_done == 0:
 			break
-
-
-
-		print('FORWARD: ' + str(FORWARD))
-		print('REVERSE: ' + str(REVERSE))
-		print()
-
-	print('FORWARD: ' + str(FORWARD))
-	print('REVERSE: ' + str(REVERSE))
-	print()
-	print('Reversing completed!')
 
 
 	return graph, reversed_chains

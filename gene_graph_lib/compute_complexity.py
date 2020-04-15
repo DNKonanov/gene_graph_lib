@@ -96,6 +96,9 @@ class GenomeGraph:
 			if len(self.dict_graph[node]) >= len(self.list_graph)*anomaly_genomes:
 				check_anomaly = set([])
 				for anode in self.dict_graph[node]:
+
+					if anode not in self.dict_graph:
+						continue
 					
 					if len(self.dict_graph[anode]) > 1:
 						break
