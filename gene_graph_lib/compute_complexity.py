@@ -3,7 +3,7 @@ import time
 from collections import OrderedDict
 import sqlite3
 import math
-
+import os
 
 class GenomeGraph:
 
@@ -80,7 +80,7 @@ class GenomeGraph:
 	genes_code = {}
 	genes_decode = {}
 	edges_weights = {}
-
+	genes_info = {}
 
 	def _code_genes(self, edge_table):
 
@@ -174,6 +174,7 @@ class GenomeGraph:
 
 		for line in f_in:
 			string = line.split(' ')
+			string[-1] = string[-1][:-1]
 
 			if len(string) < 3:
 				continue
@@ -181,7 +182,20 @@ class GenomeGraph:
 			start_gene = string[0]
 			end_gene = string[1]
 			stamm = string[2]
-			contig = string[3][:-1]
+			contig = string[3]
+
+			
+			if contig not in self.genes_info:
+				self.genes_info[contig] = {}
+
+			start_coord = string[4]
+			end_coord = string[5]
+
+			self.genes_info[contig][start_gene] = start_coord
+			self.genes_info[contig][end_gene] = end_coord
+			
+
+
 
 			if names_list != 'all' and stamm in names_list:
 				edge_table.append([start_gene, end_gene, stamm, contig])
@@ -648,38 +662,57 @@ class GenomeGraph:
 		db_.close()
 
 	def _save_data(self, data, outdir, contig):
-		f_io = open(outdir + '/IO_complexity_table_contig_' + str(contig) + '.txt', 'a+')
-		f_ab = open(outdir + '/all_bridges_contig_' + str(contig) + '.txt', 'a+')
+
+		try:
+			os.mkdir(outdir + '/extended_info/')
+		except:
+			pass
+
+		f_io = open(outdir + '/extended_info/IO_complexity_table_contig_' + str(contig) + '.txt', 'a+')
+		f_ab = open(outdir + '/extended_info/all_bridges_contig_' + str(contig) + '.txt', 'a+')
 		f_wc = open(outdir + '/window_complexity_contig_' + str(contig) + '.txt', 'a+')
-		f_mc = open(outdir + '/main_chain_contig_' + str(contig) + '.txt', 'a+')
+		f_mc = open(outdir + '/extended_info/main_chain_contig_' + str(contig) + '.txt', 'a+')
+
+		f_wc.write('position\tOrthoGroupID\tcomplexity\n')
 
 		for gene in data[0]:
-			f_wc.write(self.genes_decode[gene] + '\t' + str(data[0][gene]) + '\n')
-			f_mc.write(self.genes_decode[gene] + '\n')
+			f_wc.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\t' + str(data[0][gene]) + '\n')
+			f_mc.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\n')
 
 		for gene in data[1]:
-			f_io.write(self.genes_decode[gene] + '\t' + str(data[1][gene]) + '\n')
+			f_io.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\t' + str(data[1][gene]) + '\n')
 
 		for bridge in data[2]:
 			f_ab.write(self.genes_decode[bridge[0]] + '\t' + self.genes_decode[bridge[1]] + '\t' + str(data[2][bridge]) + '\n')
 
+		f_io.close()
+		f_ab.close()
+		f_wc.close()
+		f_mc.close()
 		
-		f_io = open(outdir + '/prob_IO_complexity_table_contig_' + str(contig) + '.txt', 'a+')
-		f_ab = open(outdir + '/prob_all_bridges_contig_' + str(contig) + '.txt', 'a+')
+		f_io = open(outdir + '/extended_info/prob_IO_complexity_table_contig_' + str(contig) + '.txt', 'a+')
+		f_ab = open(outdir + '/extended_info/prob_all_bridges_contig_' + str(contig) + '.txt', 'a+')
 		f_wc = open(outdir + '/prob_window_complexity_contig_' + str(contig) + '.txt', 'a+')
-		f_mc = open(outdir + '/prob_main_chain_contig_' + str(contig) + '.txt', 'a+')
+		f_mc = open(outdir + '/extended_info/prob_main_chain_contig_' + str(contig) + '.txt', 'a+')
+		
+		f_wc.write('position\tOrthoGroupID\tcomplexity\n')
 
 		for gene in data[3]:
-			f_wc.write(self.genes_decode[gene] + '\t' + str(data[3][gene]) + '\n')
-			f_mc.write(self.genes_decode[gene] + '\n')
+			f_wc.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\t' + str(data[3][gene]) + '\n')
+			f_mc.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\n')
 
 		for gene in data[4]:
-			f_io.write(self.genes_decode[gene] + '\t' + str(data[4][gene]) + '\n')
+			f_io.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\t' + str(data[4][gene]) + '\n')
 
 		for bridge in data[5]:
 			f_ab.write(self.genes_decode[bridge[0]] + '\t' + self.genes_decode[bridge[1]] + '\t' + str(data[5][bridge]) + '\n')
 
+		f_io.close()
+		f_ab.close()
+		f_wc.close()
+		f_mc.close()
 
+		
 	def compute_complexity(self, outdir, reference, window=20, iterations=500, min_depth=0, max_depth=-1, save_db=None):
 		"""Computes all types of complexity with the full-graph approach
 
@@ -1192,3 +1225,4 @@ class GenomeGraph:
 						prob_complexity_table, prob_io_table, prob_all_bridges], save_db, contig, reference, window=window)
 	
 		print('\nComputing completed')
+
