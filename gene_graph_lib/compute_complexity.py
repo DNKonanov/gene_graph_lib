@@ -252,7 +252,7 @@ class GenomeGraph:
 				for i in freq_table:
 					self.edges_weights[(gene, i)] = freq_table[i]
 
-		self._delete_anomaly()
+		#self._delete_anomaly()
 
 
 	def _find_node_env(self, gene, ref):
