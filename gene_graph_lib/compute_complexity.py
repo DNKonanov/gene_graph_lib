@@ -3,6 +3,7 @@ import time
 from collections import OrderedDict
 import sqlite3
 import math
+import numpy as np
 import os
 
 class GenomeGraph:
@@ -661,22 +662,35 @@ class GenomeGraph:
 		db_.commit()
 		db_.close()
 
-	def _save_data(self, data, outdir, contig):
+	def _save_data(self, data, outdir, contig, coef=1.5):
 
 		try:
 			os.mkdir(outdir + '/extended_info/')
 		except:
 			pass
 
+		profile = [data[0][gene] for gene in data[0]]
+
+		Q1 = np.quantile(profile, 0.25)
+		Q3 = np.quantile(profile, 0.75)
+
+		threshold = Q3 + coef*(Q3 - Q1)
+
 		f_io = open(outdir + '/extended_info/IO_complexity_table_contig_' + str(contig) + '.txt', 'a+')
 		f_ab = open(outdir + '/extended_info/all_bridges_contig_' + str(contig) + '.txt', 'a+')
 		f_wc = open(outdir + '/window_complexity_contig_' + str(contig) + '.txt', 'a+')
 		f_mc = open(outdir + '/extended_info/main_chain_contig_' + str(contig) + '.txt', 'a+')
 
-		f_wc.write('position\tOrthoGroupID\tcomplexity\n')
+		f_wc.write('position\tOrthoGroupID\tcomplexity\thotspot\n')
 
 		for gene in data[0]:
-			f_wc.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\t' + str(data[0][gene]) + '\n')
+			
+			if data[0][gene] > threshold:
+				hotspot_flag = '+'
+			else:
+				hotspot_flag = '-'
+
+			f_wc.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\t' + str(data[0][gene]) + '\t' + hotspot_flag + '\n')
 			f_mc.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\n')
 
 		for gene in data[1]:
@@ -689,16 +703,32 @@ class GenomeGraph:
 		f_ab.close()
 		f_wc.close()
 		f_mc.close()
+
+
+
+
+		profile = [data[3][gene] for gene in data[3]]
+
+		Q1 = np.quantile(profile, 0.25)
+		Q3 = np.quantile(profile, 0.75)
+
+		threshold = Q3 + coef*(Q3 - Q1)
 		
 		f_io = open(outdir + '/extended_info/prob_IO_complexity_table_contig_' + str(contig) + '.txt', 'a+')
 		f_ab = open(outdir + '/extended_info/prob_all_bridges_contig_' + str(contig) + '.txt', 'a+')
 		f_wc = open(outdir + '/prob_window_complexity_contig_' + str(contig) + '.txt', 'a+')
 		f_mc = open(outdir + '/extended_info/prob_main_chain_contig_' + str(contig) + '.txt', 'a+')
 		
-		f_wc.write('position\tOrthoGroupID\tcomplexity\n')
+		f_wc.write('position\tOrthoGroupID\tcomplexity\thotspot\n')
 
 		for gene in data[3]:
-			f_wc.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\t' + str(data[3][gene]) + '\n')
+
+			if data[3][gene] > threshold:
+				hotspot_flag = '+'
+			else:
+				hotspot_flag = '-'
+
+			f_wc.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\t' + str(data[3][gene]) + '\t' + hotspot_flag + '\n')
 			f_mc.write(self.genes_info[contig][self.genes_decode[gene]] + '\t' + self.genes_decode[gene] + '\n')
 
 		for gene in data[4]:
